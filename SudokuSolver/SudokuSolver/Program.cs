@@ -1,12 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace SudokuSolver
 {
@@ -14,26 +7,38 @@ namespace SudokuSolver
     {
 
         private static int[,] _puzzle = new int[9,9];
-        private static int _steps = 0;
+        private static int _steps;
+
+        //Show solving progress
+        private static bool _vis = false;
 
         private void Execute()
         {
-            if (Solve()) printSoln();
+            if (Solve()) PrintSoln();
+            Console.Read();
         }
 
         private bool Solve() //Backtracking Alg
         {
+            //Print for visualisation
+            if (_vis)
+            {
+                PrintSoln();
+                Console.SetCursorPosition(0, 0);
+            }
+            
             _steps++;
-            Cell blank = findNextBlank();
 
-            int row = blank.row;
-            int col = blank.col;
+            Cell blank = FindNextBlank();
+
+            int row = blank.Row;
+            int col = blank.Col;
 
             if (row == -1) return true;
 
-            for (int i = 1; i <= 9; i++)
+            for (var i = 1; i <= 9; i++)
             {
-                if (isValid(row, col, i))
+                if (IsValid(row, col, i))
                 {
                     _puzzle[row, col] = i;
 
@@ -48,11 +53,11 @@ namespace SudokuSolver
         }
 
 
-        private bool isValid(int row, int col, int n)
+        private bool IsValid(int row, int col, int n)
         {
-            if (!rowContains(row, n) &&
-                !colContains(col, n) &&
-                !blockContains(row - row % 3, col - col % 3, n))
+            if (!RowContains(row, n) &&
+                !ColContains(col, n) &&
+                !BlockContains(row - row % 3, col - col % 3, n))
             {
                 return true;
             }
@@ -61,29 +66,29 @@ namespace SudokuSolver
         }
 
 
-        private bool rowContains(int row, int num)
+        private bool RowContains(int row, int num)
         {
-            for (int i = 0; i < _puzzle.GetLength(0); i++)
+            for (var i = 0; i < _puzzle.GetLength(0); i++)
             {
                 if (_puzzle[row, i] == num) return true;
             }
             return false;
         }
 
-        private bool colContains(int col, int num)
+        private bool ColContains(int col, int num)
         {
-            for (int i = 0; i < _puzzle.GetLength(0); i++)
+            for (var i = 0; i < _puzzle.GetLength(0); i++)
             {
                 if (_puzzle[i, col] == num) return true;
             }
             return false;
         }
 
-        private bool blockContains(int blockStartRow, int boxStartCol, int num)
+        private bool BlockContains(int blockStartRow, int boxStartCol, int num)
         {
-            for (int i = 0; i < 3; i++)
+            for (var i = 0; i < 3; i++)
             {
-                for (int j = 0; j < 3; j++)
+                for (var j = 0; j < 3; j++)
                 {
                     if (_puzzle[i + blockStartRow, j + boxStartCol] == num) return true;
                 }
@@ -92,18 +97,18 @@ namespace SudokuSolver
             return false;
         }
 
-        private Cell findNextBlank()
+        private Cell FindNextBlank()
         {
             Cell blank = new Cell();
 
-            for (int i = 0; i < 9; i++)
+            for (var i = 0; i < 9; i++)
             {
-                for (int j = 0; j < 9; j++)
+                for (var j = 0; j < 9; j++)
                 {
                     if (_puzzle[i,j] == 0)
                     {
-                        blank.row = i;
-                        blank.col = j;
+                        blank.Row = i;
+                        blank.Col = j;
                         return blank;
                     }
                 }
@@ -112,15 +117,15 @@ namespace SudokuSolver
             return new Cell(-1, -1);
         }
 
-        private void printSoln()
+        private void PrintSoln()
         {
             StringBuilder outputBuilder = new StringBuilder();
 
             outputBuilder.Append("|-------------------|\n");
-            for (int i = 0; i < _puzzle.GetLength(0); i++)
+            for (var i = 0; i < _puzzle.GetLength(0); i++)
             {
                 outputBuilder.Append("| ");
-                for (int j = 0; j < _puzzle.GetLength(1); j++)
+                for (var j = 0; j < _puzzle.GetLength(1); j++)
                 {
                     outputBuilder.Append(_puzzle[i, j] + " ");
                 }
@@ -129,10 +134,10 @@ namespace SudokuSolver
             outputBuilder.Append("|-------------------|\n\n" + _steps);
 
             Console.Write(outputBuilder);
-            Console.Read();
+
         }
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             //HARD FOR COMPUTERS
             int[,] numbers = new int[,]{
@@ -171,13 +176,13 @@ namespace SudokuSolver
 
     struct Cell
     {
-        public int row { get; set; }
-        public int col { get; set; }
+        public int Row { get; set; }
+        public int Col { get; set; }
 
         public Cell(int row, int col)
         {
-            this.row = row;
-            this.col = col;
+            Row = row;
+            Col = col;
         }
 
     }
