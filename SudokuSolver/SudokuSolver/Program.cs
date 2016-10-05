@@ -14,9 +14,9 @@ namespace SudokuSolver
         private static int _steps;
         private static int _puzzleCount = 0;
 
-        private static Stopwatch _globalStopwatch = new Stopwatch();
+        private static readonly Stopwatch _globalStopwatch = new Stopwatch();
 
-        private static String _filename = "top10.txt";
+        private static String _filename = "top95.txt";
 
         //Show solving progress
         private static bool _vis = false;
@@ -45,7 +45,7 @@ namespace SudokuSolver
             if (_vis)
             {
                 PrintSoln();
-                Console.SetCursorPosition(0, 0);
+                Console.SetCursorPosition(0, 2);
             }
             
             _steps++;
@@ -198,6 +198,10 @@ namespace SudokuSolver
             {
                 using (StreamReader sr = new StreamReader(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/" + _filename))
                 {
+                    
+                    Console.WriteLine("Working on puzzle set: " + _filename + "\n\n");
+                    File.Delete(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/" + _filename + " Compute Metrics.txt");
+
                     while (!sr.EndOfStream)
                     {
                         String line = sr.ReadLine();
@@ -215,12 +219,12 @@ namespace SudokuSolver
 
                         if (_show)
                         {
-                            Console.SetCursorPosition(0, 0);
+                            Console.SetCursorPosition(0, 2);
                             solver.PrintSoln();
                             Console.ReadLine();
                         }
 
-                        Console.SetCursorPosition(0, 0);
+                        Console.SetCursorPosition(0, 2);
                         solver.Execute();
                     }
 

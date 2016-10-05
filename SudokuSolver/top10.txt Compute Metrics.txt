@@ -8,4 +8,14 @@
 8: 52515 steps  --  0.067s
 9: 15610 steps  --  0.019s
 10: 575942 steps  --  0.757s
-Total Elapsed Time: 3.731s.
+Total Elapsed Time: 3.731s.1: 161050 steps  --  0.217s
+2: 431724 steps  --  0.589s
+3: 872156 steps  --  1.149s
+4: 50719 steps  --  0.067s
+5: 17528 steps  --  0.021s
+6: 587598 steps  --  0.757s
+7: 35033 steps  --  0.044s
+8: 52515 steps  --  0.067s
+9: 15610 steps  --  0.019s
+10: 575942 steps  --  0.745s
+Total Elapsed Time: 3.679s.
