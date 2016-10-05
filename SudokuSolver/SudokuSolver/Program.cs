@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Timers;
+using System.Xml.Schema;
 
 namespace SudokuSolver
 {
@@ -11,6 +14,10 @@ namespace SudokuSolver
         private static int _steps;
         private static int _puzzleCount = 0;
 
+        private static Stopwatch _globalStopwatch = new Stopwatch();
+
+        private static String _filename = "top10.txt";
+
         //Show solving progress
         private static bool _vis = false;
 
@@ -18,10 +25,18 @@ namespace SudokuSolver
         private static bool _show = false;
 
         private void Execute()
-        {
-            if (Solve()) PrintSoln();
+        {   
+            Stopwatch puzzleTimer = new Stopwatch();
+            puzzleTimer.Start();
+            _globalStopwatch.Start();
+            if (Solve())
+            {
+                puzzleTimer.Stop();
+                _globalStopwatch.Stop();
+                PrintSoln();
+            }
             if (_show) Console.ReadLine();
-            writeSteps();
+            writeMetrics(puzzleTimer);
         }
 
         private bool Solve() //Backtracking Alg
@@ -144,13 +159,13 @@ namespace SudokuSolver
 
         }
 
-        private void writeSteps()
+        private void writeMetrics(Stopwatch puzzleStopwatch)
         {
             StringBuilder writeBuilder = new StringBuilder();
 
-            writeBuilder.Append("Puzzle " + _puzzleCount + ": " + _steps);
+            writeBuilder.Append(_puzzleCount + ": " + _steps + " steps  --  " + puzzleStopwatch.ElapsedMilliseconds/1000.0 + "s");
 
-            File.AppendAllText(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/Batch Compute Steps.txt", writeBuilder + Environment.NewLine);
+            File.AppendAllText(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/"+_filename+" Compute Metrics.txt", writeBuilder + Environment.NewLine);
         }
 
         private int[,] parsePuzzle(String line)
@@ -181,7 +196,7 @@ namespace SudokuSolver
         {
             try
             {
-                using (StreamReader sr = new StreamReader(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/top2365.txt"))
+                using (StreamReader sr = new StreamReader(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/" + _filename))
                 {
                     while (!sr.EndOfStream)
                     {
@@ -209,6 +224,7 @@ namespace SudokuSolver
                         solver.Execute();
                     }
 
+                    File.AppendAllText(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/" + _filename + " Compute Metrics.txt", "Total Elapsed Time: " + _globalStopwatch.ElapsedMilliseconds/1000.0 + "s.");
                 }
             }
             catch (Exception e)
@@ -230,6 +246,5 @@ namespace SudokuSolver
             Row = row;
             Col = col;
         }
-
     }
 }
