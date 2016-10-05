@@ -1,2 +1,6 @@
 # SudokuSolver
-Sudoku solver using backtracking algorithm
+Sudoku solving program. 
+
+Inital solution method: Backtracking Algorithm
+
+Exact cover problem implementation to come.
