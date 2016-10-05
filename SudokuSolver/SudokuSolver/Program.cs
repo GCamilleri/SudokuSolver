@@ -1,5 +1,9 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Text;
+using System.Timers;
+using System.Xml.Schema;
 
 namespace SudokuSolver
 {
@@ -8,14 +12,31 @@ namespace SudokuSolver
 
         private static int[,] _puzzle = new int[9,9];
         private static int _steps;
+        private static int _puzzleCount = 0;
+
+        private static Stopwatch _globalStopwatch = new Stopwatch();
+
+        private static String _filename = "top10.txt";
 
         //Show solving progress
         private static bool _vis = false;
 
+        //Pause to show initial puzzle
+        private static bool _show = false;
+
         private void Execute()
-        {
-            if (Solve()) PrintSoln();
-            Console.Read();
+        {   
+            Stopwatch puzzleTimer = new Stopwatch();
+            puzzleTimer.Start();
+            _globalStopwatch.Start();
+            if (Solve())
+            {
+                puzzleTimer.Stop();
+                _globalStopwatch.Stop();
+                PrintSoln();
+            }
+            if (_show) Console.ReadLine();
+            writeMetrics(puzzleTimer);
         }
 
         private bool Solve() //Backtracking Alg
@@ -132,45 +153,86 @@ namespace SudokuSolver
                 outputBuilder.Append("|\n");
             }
             outputBuilder.Append("|-------------------|\n\n" + _steps);
+            outputBuilder.Append("                     \n\n\n");
 
             Console.Write(outputBuilder);
 
         }
 
+        private void writeMetrics(Stopwatch puzzleStopwatch)
+        {
+            StringBuilder writeBuilder = new StringBuilder();
+
+            writeBuilder.Append(_puzzleCount + ": " + _steps + " steps  --  " + puzzleStopwatch.ElapsedMilliseconds/1000.0 + "s");
+
+            File.AppendAllText(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/"+_filename+" Compute Metrics.txt", writeBuilder + Environment.NewLine);
+        }
+
+        private int[,] parsePuzzle(String line)
+        {
+            int [,] grid = new int[9,9];
+            int row = 0;
+            int col = 0;
+
+            for (int i = 0; i < line.Length; i++)
+            {
+
+                if (line[i] == '.') grid[row, col] = 0;
+                else grid[row, col] = line[i] - '0';
+
+                col ++;
+
+                if (col == 9)
+                {
+                    col = 0;
+                    row++;
+                }
+            }
+
+            return grid;
+        }
+
         private static void Main(string[] args)
         {
-            //HARD FOR COMPUTERS
-            int[,] numbers = new int[,]{
-                {4,0,0,0,0,0,8,0,5},
-                {0,3,0,0,0,0,0,0,0},
-                {0,0,0,7,0,0,0,0,0},
-                {0,2,0,0,0,0,0,6,0},
-                {0,0,0,0,8,0,4,0,0},
-                {0,0,0,0,1,0,0,0,0},
-                {0,0,0,6,0,3,0,7,0},
-                {5,0,0,2,0,0,0,0,0},
-                {1,0,4,0,0,0,0,0,0}
-            };
+            try
+            {
+                using (StreamReader sr = new StreamReader(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/" + _filename))
+                {
+                    while (!sr.EndOfStream)
+                    {
+                        String line = sr.ReadLine();
 
-            //HARD FOR HUMANS
-            //int[,] numbers = new int[,]{
-            //    {8,0,0,0,0,0,0,0,0},
-            //    {0,0,3,6,0,0,0,0,0},
-            //    {0,7,0,0,9,0,2,0,0},
-            //    {0,5,0,0,0,7,0,0,0},
-            //    {0,0,0,0,4,5,7,0,0},
-            //    {0,0,0,1,0,0,0,3,0},
-            //    {0,0,1,0,0,0,0,6,8},
-            //    {0,0,8,5,0,0,0,1,0},
-            //    {0,9,0,0,0,0,4,0,0}
-            //};
+                        Solver solver = new Solver();
 
-            _puzzle = numbers;
+                        int[,] grid = solver.parsePuzzle(line);
 
-            Solver solver = new Solver();
+                        //BLANK GRID
+                        //int[,] grid = new int[9,9];
 
-            solver.Execute();
+                        _puzzleCount++;
+                        _steps = 0;
+                        _puzzle = grid;
 
+                        if (_show)
+                        {
+                            Console.SetCursorPosition(0, 0);
+                            solver.PrintSoln();
+                            Console.ReadLine();
+                        }
+
+                        Console.SetCursorPosition(0, 0);
+                        solver.Execute();
+                    }
+
+                    File.AppendAllText(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/" + _filename + " Compute Metrics.txt", "Total Elapsed Time: " + _globalStopwatch.ElapsedMilliseconds/1000.0 + "s.");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine("Error: Problem with input. -- " + e.Message);
+            }
+
+            
         }
     }
 
@@ -184,6 +246,5 @@ namespace SudokuSolver
             Row = row;
             Col = col;
         }
-
     }
 }
