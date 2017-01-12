@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -10,22 +11,23 @@ namespace SudokuSolver
     class Solver
     {
 
-        private static int[,] _puzzle = new int[9,9];
+        private static int[,] _puzzle = new int[9, 9];
         private static int _steps;
         private static int _puzzleCount = 0;
 
         private static readonly Stopwatch _globalStopwatch = new Stopwatch();
 
-        private static String _filename = "top95.txt";
+        private static string _filepath = "";
 
         //Show solving progress
         private static bool _vis = false;
 
         //Pause to show initial puzzle
-        private static bool _show = false;
+        private static bool _showPuzzle = false;
+
 
         private void Execute()
-        {   
+        {
             Stopwatch puzzleTimer = new Stopwatch();
             puzzleTimer.Start();
             _globalStopwatch.Start();
@@ -33,9 +35,14 @@ namespace SudokuSolver
             {
                 puzzleTimer.Stop();
                 _globalStopwatch.Stop();
-                PrintSoln();
+                if (_showPuzzle)
+                {
+                    PrintSoln();
+                    Console.WriteLine("Puzzle No: " + _puzzleCount + " Done - Press ENTER to continue...");
+                    Console.ReadLine();
+                }
             }
-            if (_show) Console.ReadLine();
+            Console.WriteLine("\n");
             writeMetrics(puzzleTimer);
         }
 
@@ -45,9 +52,9 @@ namespace SudokuSolver
             if (_vis)
             {
                 PrintSoln();
-                Console.SetCursorPosition(0, 2);
+                Console.SetCursorPosition(0, 4);
             }
-            
+
             _steps++;
 
             Cell blank = FindNextBlank();
@@ -126,7 +133,7 @@ namespace SudokuSolver
             {
                 for (var j = 0; j < 9; j++)
                 {
-                    if (_puzzle[i,j] == 0)
+                    if (_puzzle[i, j] == 0)
                     {
                         blank.Row = i;
                         blank.Col = j;
@@ -152,7 +159,7 @@ namespace SudokuSolver
                 }
                 outputBuilder.Append("|\n");
             }
-            outputBuilder.Append("|-------------------|\n\n" + _steps);
+            outputBuilder.Append("|-------------------|\n\n" + _steps + " steps taken.");
             outputBuilder.Append("                     \n\n\n");
 
             Console.Write(outputBuilder);
@@ -163,14 +170,14 @@ namespace SudokuSolver
         {
             StringBuilder writeBuilder = new StringBuilder();
 
-            writeBuilder.Append(_puzzleCount + ": " + _steps + " steps  --  " + puzzleStopwatch.ElapsedMilliseconds/1000.0 + "s");
+            writeBuilder.Append(_puzzleCount + ": " + _steps + " steps  --  " + puzzleStopwatch.ElapsedMilliseconds / 1000.0 + "s");
 
-            File.AppendAllText(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/"+_filename+" Compute Metrics.txt", writeBuilder + Environment.NewLine);
+            File.AppendAllText(@_filepath + " Compute Metrics.metrics", writeBuilder + Environment.NewLine);
         }
 
         private int[,] parsePuzzle(String line)
         {
-            int [,] grid = new int[9,9];
+            int[,] grid = new int[9, 9];
             int row = 0;
             int col = 0;
 
@@ -180,7 +187,7 @@ namespace SudokuSolver
                 if (line[i] == '.') grid[row, col] = 0;
                 else grid[row, col] = line[i] - '0';
 
-                col ++;
+                col++;
 
                 if (col == 9)
                 {
@@ -192,51 +199,70 @@ namespace SudokuSolver
             return grid;
         }
 
+
         private static void Main(string[] args)
         {
             try
             {
-                using (StreamReader sr = new StreamReader(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/" + _filename))
+                Console.WriteLine("Please enter the path to the .batch puzzle batch file: ");
+                _filepath = Console.ReadLine();
+
+                if (@_filepath != null)
                 {
-                    
-                    Console.WriteLine("Working on puzzle set: " + _filename + "\n\n");
-                    File.Delete(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/" + _filename + " Compute Metrics.txt");
-
-                    while (!sr.EndOfStream)
+                    using (StreamReader sr = new StreamReader(@_filepath))
                     {
-                        String line = sr.ReadLine();
 
-                        Solver solver = new Solver();
+                        Console.WriteLine("Working on puzzle set: " + Path.GetFileName(_filepath) + "\n\n\n");
+                        File.Delete(_filepath + " Compute Metrics.metrics");
 
-                        int[,] grid = solver.parsePuzzle(line);
-
-                        //BLANK GRID
-                        //int[,] grid = new int[9,9];
-
-                        _puzzleCount++;
-                        _steps = 0;
-                        _puzzle = grid;
-
-                        if (_show)
+                        while (!sr.EndOfStream)
                         {
-                            Console.SetCursorPosition(0, 2);
-                            solver.PrintSoln();
-                            Console.ReadLine();
+                            String line = sr.ReadLine();
+
+                            Solver solver = new Solver();
+
+                            int[,] grid = solver.parsePuzzle(line);
+
+                            //BLANK GRID
+                            //int[,] grid = new int[9,9];
+
+                            _puzzleCount++;
+                            _steps = 0;
+                            _puzzle = grid;
+
+                            if (_showPuzzle)
+                            {
+                                Console.SetCursorPosition(0, 4);
+                                solver.PrintSoln();
+
+                                Console.WriteLine("Puzzle No: " + _puzzleCount + " - Press ENTER to continue...           ");
+                                Console.ReadLine();
+                            }
+
+                            Console.SetCursorPosition(0, Console.CursorTop - 2);
+                            Console.WriteLine("Puzzle No: " + _puzzleCount + " - Working...                 ");
+
+                            Console.SetCursorPosition(0, 4);
+                            solver.Execute();
                         }
 
-                        Console.SetCursorPosition(0, 2);
-                        solver.Execute();
-                    }
+                        Console.SetCursorPosition(0, Console.CursorTop - 2);
+                        Console.WriteLine("BATCH COMPLETED.                    \nCompute metrics saved at: \"" + _filepath + "Compute Metrics.metrics\" \n\nPress ENTER to exit...");
+                        Console.ReadLine();
 
-                    File.AppendAllText(@"D:/Dev_Projects/SudokuSolver/SudokuSolver/" + _filename + " Compute Metrics.txt", "Total Elapsed Time: " + _globalStopwatch.ElapsedMilliseconds/1000.0 + "s.");
+                        File.AppendAllText(_filepath + " Compute Metrics.metrics",
+                            "Total Elapsed Time: " + _globalStopwatch.ElapsedMilliseconds / 1000.0 + "s.");
+                    }
                 }
+                else throw new NullReferenceException();
             }
             catch (Exception e)
             {
                 Console.WriteLine("Error: Problem with input. -- " + e.Message);
+                Console.ReadLine();
             }
 
-            
+
         }
     }
 
