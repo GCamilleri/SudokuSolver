@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.CodeDom;
 using System.Diagnostics;
 using System.IO;
@@ -10,7 +11,6 @@ namespace SudokuSolver
 {
     class Solver
     {
-
         private static int[,] _puzzle = new int[9, 9];
         private static int _steps;
         private static int _puzzleCount = 0;
@@ -24,7 +24,6 @@ namespace SudokuSolver
 
         //Pause to show initial puzzle
         private static bool _showPuzzle = false;
-
 
         private void Execute()
         {
